@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>OpenCluely</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 100%;
+      height: 100%;
+      background: transparent;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      overflow: hidden;
+    }
+
+    .overlay-container {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      -webkit-app-region: drag;
+    }
+
+    .control-bar {
+      background: linear-gradient(135deg, rgba(0, 0, 0, 0.6) 0%, rgba(20, 20, 20, 0.7) 100%);
+      backdrop-filter: blur(20px);
+      border-radius: 12px;
+      padding: 8px 16px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      -webkit-app-region: no-drag;
+    }
+
+    .control-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: rgba(255, 255, 255, 0.8);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      transition: all 0.2s;
+    }
+
+    .control-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: rgba(255, 255, 255, 0.3);
+      color: #fff;
+      transform: translateY(-1px);
+    }
+
+    .control-btn.active {
+      background: rgba(59, 130, 246, 0.3);
+      border-color: rgba(59, 130, 246, 0.5);
+      color: #60a5fa;
+    }
+
+    .separator {
+      width: 1px;
+      height: 20px;
+      background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.2), transparent);
+    }
+
+    .status-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+      animation: pulse 2s infinite;
+    }
+
+    .status-indicator.inactive {
+      background: #ef4444;
+      box-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.7; transform: scale(1.1); }
+    }
+  </style>
+</head>
+<body>
+  <div class="overlay-container">
+    <div class="control-bar">
+      <button class="control-btn" id="chatBtn" title="Open Visual Chat (⌘⇧C)">💬</button>
+      <div class="separator"></div>
+      <button class="control-btn" id="visibilityBtn" title="Toggle Visibility (⌘⇧V)">👁️</button>
+      <button class="control-btn" id="interactionBtn" title="Toggle Interaction (⌘⇧I)">🖱️</button>
+      <div class="separator"></div>
+      <div class="status-indicator" id="statusIndicator"></div>
+    </div>
+  </div>
+
+  <script>
+    const chatBtn = document.getElementById('chatBtn');
+    const visibilityBtn = document.getElementById('visibilityBtn');
+    const interactionBtn = document.getElementById('interactionBtn');
+    const statusIndicator = document.getElementById('statusIndicator');
+
+    let isInteractive = true;
+
+    chatBtn.addEventListener('click', () => {
+      window.electronAPI.showVisualChat();
+    });
+
+    visibilityBtn.addEventListener('click', () => {
+      window.electronAPI.toggleVisibility();
+    });
+
+    interactionBtn.addEventListener('click', () => {
+      window.electronAPI.toggleInteraction();
+    });
+
+    // Listen for interaction mode changes
+    window.electronAPI.onInteractionModeChanged = (callback) => {
+      window.addEventListener('interaction-mode-changed', (event) => {
+        callback(event.detail);
+      });
+    };
+
+    // Handle interaction mode updates
+    if (window.electronAPI.onInteractionModeChanged) {
+      window.electronAPI.onInteractionModeChanged((data) => {
+        isInteractive = data.isInteractive;
+        
+        if (isInteractive) {
+          interactionBtn.classList.add('active');
+          statusIndicator.classList.remove('inactive');
+        } else {
+          interactionBtn.classList.remove('active');
+          statusIndicator.classList.add('inactive');
+        }
+      });
+    }
+  </script>
+</body>
+</html>
