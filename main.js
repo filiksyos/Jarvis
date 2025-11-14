@@ -6,6 +6,7 @@ const config = require('./src/core/config');
 const windowManager = require('./src/managers/window.manager');
 const sessionManager = require('./src/managers/session.manager');
 const openrouterService = require('./src/services/openrouter.service');
+const aiService = require('./src/services/ai.service');
 
 class ApplicationController {
   constructor() {
@@ -83,16 +84,50 @@ class ApplicationController {
       }
     });
 
-    // Streaming chat
+    // Streaming chat with AI SDK tools
     ipcMain.handle('send-chat-stream', async (event, text) => {
       sessionManager.addUserInput(text, 'chat');
       
       try {
         const history = sessionManager.getOptimizedHistory();
-        const stream = await openrouterService.streamChat(text, history.recent);
+        const stream = aiService.streamChat(text, history.recent);
+        
+        let fullText = '';
+        let toolResults = [];
         
         for await (const chunk of stream) {
-          event.sender.send('chat-stream-chunk', { chunk });
+          if (chunk.type === 'text') {
+            fullText += chunk.content;
+            event.sender.send('chat-stream-chunk', { chunk: chunk.content });
+          } else if (chunk.type === 'tool-call') {
+            event.sender.send('tool-call', { 
+              toolName: chunk.toolName, 
+              args: chunk.args 
+            });
+          } else if (chunk.type === 'tool-result') {
+            toolResults.push({
+              toolName: chunk.toolName,
+              result: chunk.result
+            });
+            logger.info('Sending tool result', { 
+              toolName: chunk.toolName, 
+              resultType: typeof chunk.result,
+              resultKeys: chunk.result ? Object.keys(chunk.result) : null,
+              result: JSON.stringify(chunk.result).substring(0, 200)
+            });
+            event.sender.send('tool-result', { 
+              toolName: chunk.toolName, 
+              result: chunk.result 
+            });
+          }
+        }
+        
+        // Save response to session
+        if (fullText || toolResults.length > 0) {
+          sessionManager.addModelResponse(fullText || 'Tool execution completed', {
+            model: aiService.modelId,
+            tools: toolResults
+          });
         }
         
         event.sender.send('chat-stream-complete');

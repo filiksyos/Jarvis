@@ -14,10 +14,13 @@
   "author": "OpenCluely Visual MVP",
   "license": "MIT",
   "dependencies": {
+    "@openrouter/ai-sdk-provider": "^1.2.2",
+    "ai": "^5.0.93",
     "axios": "^1.6.2",
     "dotenv": "^16.3.1",
     "mermaid": "^10.6.1",
-    "winston": "^3.17.0"
+    "winston": "^3.17.0",
+    "zod": "^4.1.12"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.16",

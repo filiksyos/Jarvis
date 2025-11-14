@@ -6,6 +6,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   sendChatStream: (text) => ipcRenderer.invoke('send-chat-stream', text),
   onChatStreamChunk: (callback) => ipcRenderer.on('chat-stream-chunk', (event, data) => callback(data)),
   onChatStreamComplete: (callback) => ipcRenderer.on('chat-stream-complete', () => callback()),
+  onToolCall: (callback) => ipcRenderer.on('tool-call', (event, data) => callback(data)),
+  onToolResult: (callback) => ipcRenderer.on('tool-result', (event, data) => callback(data)),
   
   // Visual generation
   generateDiagram: (prompt) => ipcRenderer.invoke('generate-diagram', prompt),

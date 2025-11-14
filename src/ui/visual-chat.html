@@ -14,7 +14,7 @@
     body {
       width: 100vw;
       height: 100vh;
-      background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #0a0a0a 100%);
+      background: transparent;
       font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
       color: #e0e0e0;
       overflow: hidden;
@@ -58,10 +58,10 @@
       align-items: center;
       margin-bottom: 30px;
       padding: 20px 30px;
-      background: rgba(0, 0, 0, 0.4);
-      backdrop-filter: blur(10px);
+      background: rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(20px);
       border-radius: 16px;
-      border: 1px solid rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     .chat-title {
@@ -141,14 +141,16 @@
 
     .message.user {
       align-self: flex-end;
-      background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(37, 99, 235, 0.2));
-      border-color: rgba(59, 130, 246, 0.3);
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(37, 99, 235, 0.15));
+      border-color: rgba(59, 130, 246, 0.2);
+      backdrop-filter: blur(10px);
     }
 
     .message.assistant {
       align-self: flex-start;
-      background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(147, 51, 234, 0.2));
-      border-color: rgba(168, 85, 247, 0.3);
+      background: linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(147, 51, 234, 0.15));
+      border-color: rgba(168, 85, 247, 0.2);
+      backdrop-filter: blur(10px);
     }
 
     .message.streaming {
@@ -184,10 +186,10 @@
       display: flex;
       gap: 12px;
       padding: 20px;
-      background: rgba(0, 0, 0, 0.4);
-      backdrop-filter: blur(10px);
+      background: rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(20px);
       border-radius: 16px;
-      border: 1px solid rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     .input-field {
@@ -250,6 +252,69 @@
     @keyframes loading {
       0%, 80%, 100% { opacity: 0; }
       40% { opacity: 1; }
+    }
+
+    /* Positioned elements for Jarvis effect */
+    .positioned-element {
+      position: fixed;
+      z-index: 1000;
+      pointer-events: none;
+      max-width: 400px;
+      padding: 20px;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(20px);
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .positioned-text {
+      color: #e0e0e0;
+      font-size: 14px;
+      line-height: 1.6;
+      word-wrap: break-word;
+    }
+
+    .positioned-diagram {
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 8px;
+      padding: 15px;
+      overflow: auto;
+      max-width: 100%;
+    }
+
+    .positioned-diagram svg {
+      max-width: 100%;
+      height: auto;
+    }
+
+    .positioned-image-container {
+      border-radius: 8px;
+      overflow: hidden;
+      max-width: 100%;
+    }
+
+    .positioned-image-container img {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 8px;
+    }
+
+    /* Tool indicator */
+    .tool-indicator {
+      margin-top: 10px;
+      padding: 8px 12px;
+      background: rgba(59, 130, 246, 0.2);
+      border-radius: 8px;
+      font-size: 12px;
+      color: #60a5fa;
+      animation: pulse 2s infinite;
+    }
+
+    /* Enhanced transparency for messages */
+    .message {
+      background: rgba(0, 0, 0, 0.2) !important;
     }
   </style>
 </head>

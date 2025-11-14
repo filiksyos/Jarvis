@@ -128,27 +128,96 @@ class OpenRouterService {
 
   async generateImage(prompt) {
     try {
-      const response = await axios.post(
-        `${this.baseUrl}/images/generations`,
+      // Use Gemini 2.5 Flash Image model from .env (exactly like reference repo)
+      const MODEL_NAME = this.imageModel || 'google/gemini-2.5-flash-image';
+      const OPENROUTER_API_URL = `${this.baseUrl}/chat/completions`;
+      const MAX_PROCESSING_TIME = 60000; // 60 seconds timeout
+      
+      // Prepare message content with text prompt (matching reference repo format exactly)
+      const messageContent = [
         {
-          model: this.imageModel,
-          prompt,
-          n: 1,
-          size: '1024x1024'
+          type: 'text',
+          text: prompt
+        }
+      ];
+
+      logger.info('Making request to OpenRouter API', { url: OPENROUTER_API_URL, model: MODEL_NAME });
+      
+      const response = await axios.post(
+        OPENROUTER_API_URL,
+        {
+          model: MODEL_NAME,
+          messages: [
+            {
+              role: 'user',
+              content: messageContent
+            }
+          ],
+          timeout: MAX_PROCESSING_TIME
         },
         {
           headers: {
             'Authorization': `Bearer ${this.apiKey}`,
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'HTTP-Referer': process.env.SITE_URL || 'https://opencluely-visual-mvp',
+            'X-Title': 'OpenCluely Visual'
           }
         }
       );
 
-      const imageUrl = response.data.data[0].url;
-      logger.info('Image generated', { url: imageUrl });
-      return imageUrl;
+      logger.info('OpenRouter API Response received', { status: response.status });
+
+      // Extract the response according to OpenRouter/Gemini format (exactly like reference repo)
+      const choice = response.data.choices?.[0];
+      const message = choice?.message;
+      const finishReason = choice?.finish_reason;
+      const generatedImages = message?.images || [];
+      const generatedContent = message?.content;
+
+      logger.info('Response parsed', { 
+        finishReason, 
+        imagesCount: generatedImages.length,
+        hasContent: !!generatedContent 
+      });
+
+      // Check if the response completed successfully
+      if (!finishReason || !['stop', 'length', 'content_filter'].includes(finishReason)) {
+        logger.error('Generation incomplete', { finishReason });
+        throw new Error(`AI generation incomplete. Reason: ${finishReason || 'unknown'}`);
+      }
+
+      // Check if we got generated images (matching reference repo logic)
+      if (generatedImages.length > 0) {
+        logger.info(`Found ${generatedImages.length} generated image(s)`);
+        
+        // Get the first generated image (exactly like reference repo)
+        const firstImage = generatedImages[0];
+        const imageUrl = firstImage.image_url?.url || firstImage;
+        
+        if (!imageUrl) {
+          logger.error('Generated image data is invalid or missing', { firstImage });
+          throw new Error('Generated image data is invalid or missing');
+        }
+
+        logger.info('Image generated successfully', { url: imageUrl.substring(0, 50) + '...' });
+        return imageUrl;
+      }
+
+      // If no images but there's text content
+      if (generatedContent) {
+        logger.warn('No images generated, only text content returned', { content: generatedContent.substring(0, 200) });
+        throw new Error('AI model returned text instead of generating an image');
+      }
+
+      // No images and no content
+      logger.error('No images or content generated', { response: response.data });
+      throw new Error('AI model did not generate any content');
     } catch (error) {
-      logger.error('Image generation failed', { error: error.message });
+      logger.error('Image generation failed', { 
+        error: error.message, 
+        response: error.response?.data,
+        status: error.response?.status
+      });
       throw error;
     }
   }
