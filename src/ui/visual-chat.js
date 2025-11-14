@@ -31,14 +31,6 @@ function setupIPCListeners() {
       console.log('Tool call received:', data);
       const { toolName, args } = data;
       currentToolCalls.set(toolName, { args, status: 'calling' });
-      
-      // Show tool call indicator
-      if (currentStreamingMessage) {
-        const toolIndicator = document.createElement('div');
-        toolIndicator.className = 'tool-indicator';
-        toolIndicator.textContent = `🔧 Calling ${toolName}...`;
-        currentStreamingMessage.appendChild(toolIndicator);
-      }
     });
   } else {
     console.error('onToolCall not available!');
@@ -55,16 +47,6 @@ function setupIPCListeners() {
       if (toolCall) {
         toolCall.status = 'completed';
         toolCall.result = result;
-      }
-
-      // Remove tool indicator
-      if (currentStreamingMessage) {
-        const indicators = currentStreamingMessage.querySelectorAll('.tool-indicator');
-        indicators.forEach(ind => {
-          if (ind.textContent.includes(toolName)) {
-            ind.remove();
-          }
-        });
       }
 
       // Handle different tool results
